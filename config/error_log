@@ -1,0 +1,8 @@
+[01-Feb-2025 12:04:08 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home3/maajasolpaints/public_html/config/database.php:19
+Stack trace:
+#0 {main}
+  thrown in /home3/maajasolpaints/public_html/config/database.php on line 19
+[02-Feb-2025 20:25:04 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home3/maajasolpaints/public_html/config/app.php:16
+Stack trace:
+#0 {main}
+  thrown in /home3/maajasolpaints/public_html/config/app.php on line 16
