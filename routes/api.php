@@ -54,4 +54,6 @@ Route::middleware(['auth:sanctum', AuthToken::class])->group(function () {
 
 Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
 
-Route::get('/delete/{id}', [AuthController::class, 'deactivateAccount']);
+Route::get('/delete/form', [AuthController::class, 'deleteform']);
+
+Route::post('/delete', [AuthController::class, 'deleteAccount']);
