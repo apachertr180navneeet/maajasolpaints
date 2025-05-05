@@ -66,9 +66,9 @@
 
                                     </td>
 
-                                    <td>{{ $transaction->product->points ?? '0' }} PTS</td>
+                                    <td style="color: rgb(0, 255, 55);font-weight: bolder;">{{ $transaction->product->points ?? '0' }} PTS</td>
 
-                                    <td>{{ number_format($transaction->points_earned ?? 0) }} PTS</td>
+                                    <td style="font-weight: bolder;">{{ number_format($transaction->points_earned ?? 0) }} PTS</td>
 
                                     <td>{{ $transaction->product->name ?? 'N/A' }}</td>
 
@@ -76,7 +76,7 @@
 
                                     </td>
 
-                                    <td>{{ number_format(abs(optional($transaction->product)->points - $transaction->points_earned ?? 0)) }}PTS</td>
+                                    <td style="color: red;font-weight: bolder;">{{ number_format(abs(optional($transaction->product)->points - $transaction->points_earned ?? 0)) }}PTS</td>
 
                                 </tr>
 

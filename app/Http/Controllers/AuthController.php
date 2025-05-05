@@ -262,6 +262,35 @@ class AuthController extends Controller
         ], 200);
     }
 
+
+    public function deactivateAccount(Request $request)
+    {
+        $request->id;
+        
+        $user = User::where('mobile_number', $request->id)->first(); // Get the authenticated user
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated.',
+                'status' => 0,
+                'data' => null
+            ], 401);
+        }
+
+        // Deactivate the user (e.g., set 'is_active' to false)
+        $user->status = "blocked";
+        $user->save();
+
+        
+
+        return response()->json([
+            'message' => 'Account deactivated successfully.',
+            'status' => 1,
+            'data' => null
+        ], 200);
+    }
+
+
     public function updateProfile(Request $request)
     {
         $request->validate([

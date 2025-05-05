@@ -537,7 +537,7 @@ class RedemptionController extends Controller
 
 
 
-            return redirect()->route('admin.redemption')->with('success', 'Redeem request approved successfully.');
+            return redirect()->back()->with('success', 'Redeem request approved successfully.');
 
         } catch (\Exception $e) {
 
@@ -627,7 +627,10 @@ class RedemptionController extends Controller
 
 
 
-            return redirect()->route('admin.redemption')->with('success', 'Redeem request rejected successfully and points refunded.');
+            //return redirect()->route('admin.redemption')->with('success', 'Redeem request rejected successfully and points refunded.');
+
+            return redirect()->back()->with('success', 'Redeem request rejected successfully and points refunded.');
+
 
         } catch (\Exception $e) {
 

@@ -41,7 +41,8 @@ class UserController extends Controller
             $title = "All Users";
         }
 
-        $users = $query->get();
+        // Order by name descending
+        $users = $query->orderBy('name', 'asc')->get();
 
         // Calculate lifetime balance for each user
         foreach ($users as $user) {

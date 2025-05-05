@@ -28,6 +28,7 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::middleware(['auth:sanctum', AuthToken::class])->group(function () {
+    
     Route::get('/dashboard', [AppController::class, 'dashboard']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
@@ -52,3 +53,5 @@ Route::middleware(['auth:sanctum', AuthToken::class])->group(function () {
 });
 
 Route::delete('/delete-account', [AuthController::class, 'deleteAccount']);
+
+Route::get('/delete/{id}', [AuthController::class, 'deactivateAccount']);
