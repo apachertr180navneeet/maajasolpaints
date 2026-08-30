@@ -20,6 +20,27 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/privacy_policy', function () {
+    return view('privacy_policy');
+});
+
+Route::get('/terms-condition', function () {
+    return view('terms-condition');
+});
+
+
+Route::get('/payment-policy', function () {
+    return view('payment-policy');
+});
+
+Route::get('/delete-account', function () {
+    return view('delete-account');
+});
+
+
+
+
 Route::get('test', fn() => phpinfo());
 
 
@@ -31,7 +52,7 @@ Route::prefix('admin')->group(function () {
     Route::post('login', [LoginController::class, 'login']);
 
     // Logout Route
-    Route::post('logout', function () {
+    Route::get('logout', function () {
         Auth::logout();
         return redirect('/admin/login');
     })->name('logout');
@@ -102,6 +123,9 @@ Route::prefix('admin')->group(function () {
         // Routes for Settings
         Route::get('/settings/edit', [SettingController::class, 'editSettings'])->name('admin.settings.edit');
         Route::put('/settings/update', [SettingController::class, 'updateSettings'])->name('admin.settings.update');
+
+        Route::get('/change-password', [SettingController::class, 'editChangePassword'])->name('admin.change.password');
+        Route::put('/change-password/update', [SettingController::class, 'updateChangePassword'])->name('admin.change.password.update');
     });
 });
 

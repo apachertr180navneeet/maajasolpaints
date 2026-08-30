@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Settings;
+use App\Models\User;
 use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class SettingController extends Controller
 {
@@ -62,5 +66,38 @@ class SettingController extends Controller
         }
 
         return redirect()->route('admin.settings.edit')->with('success', 'Settings updated successfully.');
+    }
+
+
+    public function editChangePassword()
+    {
+        $user = auth()->user();
+        return view('admin.settings.change-password');
+    }
+
+
+    public function updateChangePassword(Request $request)
+    {
+        // Validate request
+        $request->validate([
+            'current_password' => ['required'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'], 
+        ]);
+
+        $user = auth()->user();
+
+        // Check if current password matches
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => __('The current password is incorrect.'),
+            ]);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->back()->with('success', 'Password changed successfully.');
     }
 }

@@ -262,35 +262,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
-    public function deactivateAccount(Request $request)
-    {
-        $request->id;
-        
-        $user = User::where('mobile_number', $request->id)->first(); // Get the authenticated user
-
-        if (!$user) {
-            return response()->json([
-                'message' => 'User not authenticated.',
-                'status' => 0,
-                'data' => null
-            ], 401);
-        }
-
-        // Deactivate the user (e.g., set 'is_active' to false)
-        $user->status = "blocked";
-        $user->save();
-
-        
-
-        return response()->json([
-            'message' => 'Account deactivated successfully.',
-            'status' => 1,
-            'data' => null
-        ], 200);
-    }
-
-
     public function updateProfile(Request $request)
     {
         $request->validate([
@@ -384,28 +355,22 @@ class AuthController extends Controller
 
     public function deleteAccount(Request $request)
     {
-        $mobile = $request->mobile;
-
-        // Find user by mobile number
-        $user = User::where('mobile_number', $mobile)->first();
-        
-
-        if ($user) {
-            // Update user status (assuming status 0 means deleted/deactivated)
-            $user->status = 'blocked';
-            $user->save();
-
-            // Optional: flash message
-            return redirect()->back()->with('success', 'Account has been deactivated successfully.');
+        $validator = Validator::make($request->all(), [
+            'mobile_number' => 'required|string|size:10',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
         }
+        $mobileNumber = $request->mobile_number;
+        $user = User::where('mobile_number', $mobileNumber)->first();
 
-        // If user not found
-        return redirect()->back()->with('error', 'User not found.');
-    }
-
-
-    public function deleteform()
-    {
-        return view('delete');
+        if (!$user) {
+            return response()->json(['message' => 'User not authenticated.'], 401);
+        }
+        if ($user->mobile_number !== $request->mobile_number) {
+            return response()->json(['message' => 'Mobile number does not match.'], 403);
+        }
+        // $user->delete();
+        return response()->json(['message' => 'Account deleted successfully.'], 200);
     }
 }

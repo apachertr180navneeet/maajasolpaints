@@ -74,7 +74,7 @@ class RedemptionController extends Controller
             ->sum('points');
 
 
-        if ($pendingPoints >= $user->balance) {
+        if ($pendingPoints < $user->balance) {
             return response()->json([
                 'status' => 0,
                 'message' => 'You already have pending requests that exceed or match your balance. Please wait for approval.',
@@ -537,7 +537,7 @@ class RedemptionController extends Controller
 
 
 
-            return redirect()->back()->with('success', 'Redeem request approved successfully.');
+            return redirect()->route('admin.redemption')->with('success', 'Redeem request approved successfully.');
 
         } catch (\Exception $e) {
 
@@ -627,10 +627,7 @@ class RedemptionController extends Controller
 
 
 
-            //return redirect()->route('admin.redemption')->with('success', 'Redeem request rejected successfully and points refunded.');
-
-            return redirect()->back()->with('success', 'Redeem request rejected successfully and points refunded.');
-
+            return redirect()->route('admin.redemption')->with('success', 'Redeem request rejected successfully and points refunded.');
 
         } catch (\Exception $e) {
 

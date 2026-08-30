@@ -53,8 +53,7 @@ class TransactionController extends Controller
         $endDate = $request->input('end_date');
         $singleDate = $request->input('date');
 
-        $transactions = Transaction::where('user_id', $user->id)
-            ->where('transaction_type', 'gift')
+        $transactions = Transaction::where('user_id', $user->id)->where('transaction_type','gift')
             ->with(['gift:id,name,image'])
             ->orderBy('created_at', 'desc');
 
@@ -70,22 +69,10 @@ class TransactionController extends Controller
             $transactions->whereDate('created_at', '<=', $endDate);
         }
 
-        $transactions = $transactions->get();
-
-        // Append "Gift name: {gift name}<br>{remark}"
-        $transactions->transform(function ($transaction) {
-            if ($transaction->gift) {
-                $giftName = $transaction->gift->name;
-                $originalRemark = $transaction->message ?? '';
-                $transaction->message = 'Gift name: ' . $giftName . 'Remark' . $originalRemark;
-            }
-            return $transaction;
-        });
-
         return response()->json([
             'status' => 1,
             'message' => 'Transactions retrieved successfully.',
-            'data' => $transactions
+            'data' => $transactions->get()
         ]);
     }
     public function getCashHistory(Request $request)

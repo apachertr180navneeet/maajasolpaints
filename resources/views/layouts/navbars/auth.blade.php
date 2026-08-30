@@ -170,6 +170,32 @@
                     </ul>
                 </div>
             </li>
+
+            <li class="{{ ($activeSection ?? 'false') == 'change.password' ? 'active' : '' }}">
+                <div class="" id="settingsSection">
+                    <ul class="nav">
+                        <li class="{{ ($activeSection ?? 'false') == 'change.password' ? 'active' : '' }}">
+                            <a href="{{ route('admin.change.password') }}">
+                                <i class="fas fa-cogs"></i>
+                                <span class="sidebar-normal" style="font-weight: 600;">{{ __('Change Password') }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="{{ ($activeSection ?? 'false') == 'logout' ? 'active' : '' }}">
+                <div class="" id="settingsSection">
+                    <ul class="nav">
+                        <li class="{{ ($activeSection ?? 'false') == 'logout' ? 'active' : '' }}">
+                            <a href="{{ route('logout') }}">
+                                <i class="fas fa-cogs"></i>
+                                <span class="sidebar-normal" style="font-weight: 600;">{{ __('Logout') }}</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
         </ul>
     </div>
 </div>
