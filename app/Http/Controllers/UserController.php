@@ -51,13 +51,23 @@ class UserController extends Controller
             $user->lifetime_balance = $lifetime_balance;
         }
 
+        // Calculate counts for each status
+        $counts = [
+            'all' => User::where('is_admin', 0)->count(),
+            'pending' => User::where('is_admin', 0)->where('status', 'pending')->count(),
+            'active' => User::where('is_admin', 0)->where('status', 'active')->count(),
+            'inactive' => User::where('is_admin', 0)->where('status', 'inactive')->count(),
+            'blocked' => User::where('is_admin', 0)->where('status', 'blocked')->count(),
+        ];
+
         // Determine active section for UI highlighting
-        $activeSection = $status . '_users';
+        $activeSection = 'users';
 
         return view('admin/users.index', [
             'title' => $title,
             'users' => $users,
             'status' => $status,
+            'counts' => $counts,
             'activeSection' => $activeSection
         ]);
     }

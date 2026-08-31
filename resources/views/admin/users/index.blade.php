@@ -7,11 +7,60 @@
         <div class="container-fluid mt--7">
             <div class="row">
                 <div class="col">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    @endif
+
                     <div class="card shadow">
                         <div class="card-header border-0">
                             <div class="row align-items-center">
-                                <div class="col-8">
-                                    <h3 class="mb-0">{{ $title ?? 'Users' }}</h3>                                </div>
+                                <div class="col-lg-4 col-md-12 mb-2 mb-lg-0">
+                                    <h3 class="mb-0">{{ $title ?? 'Users' }}</h3>
+                                </div>
+                                <div class="col-lg-8 col-md-12 text-lg-right">
+                                    <a href="{{ route('admin.users', ['status' => 'pending']) }}" 
+                                       class="btn btn-sm btn-warning mb-1 {{ ($status ?? '') == 'pending' ? 'active font-weight-bold shadow-sm' : '' }}">
+                                        <i class="fas fa-user-clock mr-1"></i> Pending Users
+                                        @if (isset($counts['pending']) && $counts['pending'] > 0)
+                                            <span class="badge badge-danger ml-1">{{ $counts['pending'] }}</span>
+                                        @endif
+                                    </a>
+                                    <a href="{{ route('admin.users', ['status' => 'all']) }}" 
+                                       class="btn btn-sm btn-secondary mb-1 {{ ($status ?? '') == 'all' || empty($status) ? 'active font-weight-bold shadow-sm' : '' }}">
+                                        <i class="fas fa-users mr-1"></i> All Users
+                                        @if (isset($counts['all']))
+                                            <span class="badge badge-light ml-1">{{ $counts['all'] }}</span>
+                                        @endif
+                                    </a>
+                                    <a href="{{ route('admin.users', ['status' => 'active']) }}" 
+                                       class="btn btn-sm btn-success mb-1 {{ ($status ?? '') == 'active' ? 'active font-weight-bold shadow-sm' : '' }}">
+                                        <i class="fas fa-user-check mr-1"></i> Active
+                                        @if (isset($counts['active']))
+                                            <span class="badge badge-light ml-1">{{ $counts['active'] }}</span>
+                                        @endif
+                                    </a>
+                                    <a href="{{ route('admin.users', ['status' => 'inactive']) }}" 
+                                       class="btn btn-sm btn-info mb-1 {{ ($status ?? '') == 'inactive' ? 'active font-weight-bold shadow-sm' : '' }}">
+                                        <i class="fas fa-user-times mr-1"></i> Inactive
+                                    </a>
+                                    <a href="{{ route('admin.users', ['status' => 'blocked']) }}" 
+                                       class="btn btn-sm btn-danger mb-1 {{ ($status ?? '') == 'blocked' ? 'active font-weight-bold shadow-sm' : '' }}">
+                                        <i class="fas fa-user-lock mr-1"></i> Blocked
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -70,13 +119,15 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <span class="badge 
-                                                    @if ($user->status == 'active') bg-success
-                                                    @elseif($user->status == 'inactive') bg-secondary
-                                                    @elseif($user->status == 'blocked') bg-danger
-                                                    @elseif($user->status == 'pending') bg-warning text-dark @endif">
-                                                    {{ ucfirst($user->status) }}
-                                                </span>
+                                                <a href="{{ route('admin.users', ['status' => $user->status]) }}">
+                                                    <span class="badge 
+                                                        @if ($user->status == 'active') bg-success
+                                                        @elseif($user->status == 'inactive') bg-secondary
+                                                        @elseif($user->status == 'blocked') bg-danger
+                                                        @elseif($user->status == 'pending') bg-warning text-dark @endif">
+                                                        {{ ucfirst($user->status) }}
+                                                    </span>
+                                                </a>
                                             </td>
                                             <td> 
                                                 {{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : 'N/A' }}
