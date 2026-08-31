@@ -57,14 +57,33 @@ class UserController extends Controller
         return view('admin/users.index', [
             'title' => $title,
             'users' => $users,
+            'status' => $status,
             'activeSection' => $activeSection
         ]);
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
         return view('admin.users.show', compact('user'));
     }
+
+    public function approve(Request $request, User $user)
+    {
+        try {
+            $user->status = 'active';
+            $user->save();
+
+            $redirectTo = $request->input('redirect_to');
+            if (!$redirectTo) {
+                $redirectTo = route('admin.users', ['status' => 'pending']);
+            }
+
+            return redirect($redirectTo)->with('success', 'User activated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to activate user: ' . $e->getMessage());
+        }
+    }
+
     public function updateStatus(Request $request, $id)
     {
         // Validate the incoming request
@@ -89,7 +108,7 @@ class UserController extends Controller
         return response()->json(['message' => 'User status updated successfully', 'user' => $user], 200);
     }
 
-    public function edit(User $user)
+    public function edit(Request $request, User $user)
     {
         return view('admin.users.edit', compact('user'));
     }
@@ -150,16 +169,35 @@ class UserController extends Controller
             $userData['bank_cheque_image'] = $bankChequeImagePath;
         }
 
+        $originalStatus = $user->status;
         $user->update($userData);
         if ($request->status != 'active') {
             $user->tokens()->delete();
         }
-        return redirect()->route('admin.users')->with('success', 'User updated successfully.');
+
+        $message = ($request->status == 'active' && $originalStatus != 'active')
+            ? 'User activated successfully.'
+            : 'User updated successfully.';
+
+        $redirectTo = $request->input('redirect_to');
+        if ($redirectTo) {
+            return redirect($redirectTo)->with('success', $message);
+        }
+
+        return redirect()->route('admin.users', ['status' => $user->status ?? 'all'])->with('success', $message);
     }
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
-        $user->delete();
-        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
+        try {
+            $user->delete();
+            $redirectTo = $request->input('redirect_to');
+            if ($redirectTo) {
+                return redirect($redirectTo)->with('success', 'User deleted successfully.');
+            }
+            return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
     }
     public function showPoints()
     {

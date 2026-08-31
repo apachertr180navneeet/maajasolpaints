@@ -21,8 +21,34 @@
                     @csrf
                     @method('PUT')
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="title">{{ __('View Profile') }}</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <h5 class="title mb-0 d-inline-block">{{ __('View Profile') }}</h5>
+                                <span class="badge ml-2 
+                                    @if ($user->status == 'active') bg-success text-white
+                                    @elseif($user->status == 'inactive') bg-warning text-dark
+                                    @elseif($user->status == 'blocked') bg-danger text-white
+                                    @elseif($user->status == 'pending') bg-warning text-dark @endif">
+                                    {{ ucfirst($user->status) }}
+                                </span>
+                            </div>
+                            <div class="mt-2 mt-sm-0">
+                                @if ($user->status == 'pending' || $user->status != 'active')
+                                    <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="redirect_to" value="{{ request('redirect_to', route('admin.users', ['status' => 'pending'])) }}">
+                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve and activate this user?')">
+                                            <i class="fas fa-check-circle"></i> {{ __('Approve / Activate User') }}
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route('admin.users.edit', ['user' => $user->id, 'redirect_to' => request('redirect_to', route('admin.users', ['status' => $user->status]))]) }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> {{ __('Edit') }}
+                                </a>
+                                <a href="{{ request('redirect_to', route('admin.users', ['status' => $user->status ?? 'pending'])) }}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-arrow-left"></i> {{ __('Back') }}
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -227,6 +253,27 @@
                                 </div>
                             </div>
 
+                        </div>
+                        <div class="card-footer text-center">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    @if ($user->status == 'pending' || $user->status != 'active')
+                                        <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <input type="hidden" name="redirect_to" value="{{ request('redirect_to', route('admin.users', ['status' => 'pending'])) }}">
+                                            <button type="submit" class="btn btn-success btn-round" onclick="return confirm('Are you sure you want to approve and activate this user?')">
+                                                <i class="fas fa-check-circle"></i> {{ __('Approve / Activate User') }}
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <a href="{{ route('admin.users.edit', ['user' => $user->id, 'redirect_to' => request('redirect_to', route('admin.users', ['status' => $user->status]))]) }}" class="btn btn-warning btn-round">
+                                        <i class="fas fa-edit"></i> {{ __('Edit User') }}
+                                    </a>
+                                    <a href="{{ request('redirect_to', route('admin.users', ['status' => $user->status ?? 'pending'])) }}" class="btn btn-secondary btn-round">
+                                        <i class="fas fa-arrow-left"></i> {{ __('Back to List') }}
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>

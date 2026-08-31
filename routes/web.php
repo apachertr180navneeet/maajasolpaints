@@ -79,6 +79,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::post('/users/{user}/approve', [UserController::class, 'approve'])->name('admin.users.approve');
         Route::get('/users-status/{status?}', [UserController::class, 'index'])->name('admin.users');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 

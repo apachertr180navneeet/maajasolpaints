@@ -72,9 +72,9 @@
                                             <td>
                                                 <span class="badge 
                                                     @if ($user->status == 'active') bg-success
-                                                    @elseif($user->status == 'inactive') bg-warning
+                                                    @elseif($user->status == 'inactive') bg-secondary
                                                     @elseif($user->status == 'blocked') bg-danger
-                                                    @elseif($user->status == 'pending') bg-secondary @endif">
+                                                    @elseif($user->status == 'pending') bg-warning text-dark @endif">
                                                     {{ ucfirst($user->status) }}
                                                 </span>
                                             </td>
@@ -82,11 +82,22 @@
                                                 {{ $user->created_at ? $user->created_at->format('d/m/Y H:i') : 'N/A' }}
                                             </td>
                                             <td>
-                                                <a href="{{ route('admin.users.show', $user->id) }}"
+                                                @if ($user->status == 'pending')
+                                                    <form action="{{ route('admin.users.approve', $user->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                                                        <button type="submit" class="btn btn-success btn-sm"
+                                                            onclick="return confirm('Are you sure you want to approve and activate this user?')"
+                                                            title="Approve / Activate">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                                <a href="{{ route('admin.users.show', ['user' => $user->id, 'redirect_to' => request()->fullUrl()]) }}"
                                                     class="btn btn-info btn-sm" title="View">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{{ route('admin.users.edit', $user->id) }}"
+                                                <a href="{{ route('admin.users.edit', ['user' => $user->id, 'redirect_to' => request()->fullUrl()]) }}"
                                                     class="btn btn-warning btn-sm" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -94,6 +105,7 @@
                                                     style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
                                                     <button type="submit" class="btn btn-danger btn-sm"
                                                         onclick="return confirm('Are you sure you want to delete this user?')"
                                                         title="Delete">

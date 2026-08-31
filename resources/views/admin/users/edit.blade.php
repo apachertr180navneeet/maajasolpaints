@@ -20,9 +20,24 @@
                 <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="redirect_to" value="{{ request('redirect_to', url()->previous()) }}">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="title">{{ __('Edit Profile') }}</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <h5 class="title mb-0 d-inline-block">{{ __('Edit Profile') }}</h5>
+                                <span class="badge ml-2 
+                                    @if ($user->status == 'active') bg-success text-white
+                                    @elseif($user->status == 'inactive') bg-warning text-dark
+                                    @elseif($user->status == 'blocked') bg-danger text-white
+                                    @elseif($user->status == 'pending') bg-warning text-dark @endif">
+                                    {{ ucfirst($user->status) }}
+                                </span>
+                            </div>
+                            <div class="mt-2 mt-sm-0">
+                                <a href="{{ request('redirect_to', route('admin.users', ['status' => $user->status ?? 'all'])) }}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-arrow-left"></i> {{ __('Back') }}
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -258,11 +273,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer ">
+                        <div class="card-footer">
                             <div class="row">
                                 <div class="col-md-12 text-center">
                                     <button type="submit"
                                         class="btn btn-info btn-round">{{ __('Save Changes') }}</button>
+                                    <a href="{{ request('redirect_to', route('admin.users', ['status' => $user->status ?? 'all'])) }}"
+                                        class="btn btn-secondary btn-round">
+                                        <i class="fas fa-arrow-left"></i> {{ __('Back') }}
+                                    </a>
                                 </div>
                             </div>
                         </div>
