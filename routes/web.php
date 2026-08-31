@@ -114,9 +114,8 @@ Route::prefix('admin')->group(function () {
         Route::put('/gifts/{id}', [GiftController::class, 'update'])->name('admin.gift.update');
         Route::delete('/gifts/{id}', [GiftController::class, 'destroy'])->name('admin.gift.destroy');
 
-        Route::get('/redemption/{status?}', [RedemptionController::class, 'index'])->name('admin.redemption');
-
-        Route::get('/redemption/{id}', [RedemptionController::class, 'show'])->name('admin.redemption.show');
+        Route::get('/redemption/show/{id}', [RedemptionController::class, 'show'])->name('admin.redemption.show');
+        Route::get('/redemption/{status?}', [RedemptionController::class, 'index'])->where('status', 'pending|approved|completed|rejected|all')->name('admin.redemption');
         Route::post('/redemption/approve/{id}', [RedemptionController::class, 'approve'])->name('admin.redemption.approve');
         Route::post('/redemption/reject/{id}', [RedemptionController::class, 'reject'])->name('admin.redemption.reject');
         Route::delete('/redemption/{id}', [RedemptionController::class, 'delete'])->name('admin.redemption.delete');

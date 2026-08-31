@@ -416,231 +416,197 @@ class RedemptionController extends Controller
 
 
     public function index($status = 'all')
-
     {
-
         $query = Transaction::with([
-
             'gift' => function ($query) {
-
                 $query->withTrashed();
-
             },
-
             'user' => function ($query) {
-
                 $query->withTrashed();
-
             },
-
+            'product'
         ])->where('transaction_type', '!=', 'qr');
 
-
-
         if ($status === 'pending') {
-
+            $title = "Pending Requests";
             $query->where('status', 'pending');
-
         } elseif ($status === 'approved') {
-
+            $title = "Approved Requests";
             $query->where('status', 'approved');
-
         } elseif ($status === 'completed') {
-
+            $title = "Completed Requests";
             $query->where('status', 'completed');
-
         } elseif ($status === 'rejected') {
-
+            $title = "Rejected Requests";
             $query->where('status', 'rejected');
-
+        } else {
+            $title = "All Redemption Requests";
         }
-
-
 
         $redeemRequests = $query->orderBy('id', 'desc')->get();
 
-        return view('admin.redemption.index', compact('redeemRequests'));
+        $counts = [
+            'all' => Transaction::where('transaction_type', '!=', 'qr')->count(),
+            'pending' => Transaction::where('transaction_type', '!=', 'qr')->where('status', 'pending')->count(),
+            'approved' => Transaction::where('transaction_type', '!=', 'qr')->where('status', 'approved')->count(),
+            'rejected' => Transaction::where('transaction_type', '!=', 'qr')->where('status', 'rejected')->count(),
+            'completed' => Transaction::where('transaction_type', '!=', 'qr')->where('status', 'completed')->count(),
+        ];
 
+        return view('admin.redemption.index', [
+            'title' => $title,
+            'redeemRequests' => $redeemRequests,
+            'status' => $status,
+            'counts' => $counts,
+            'activeSection' => 'redemption'
+        ]);
     }
 
+    public function show(Request $request, $id)
+    {
+        $transaction = Transaction::with([
+            'gift' => function ($query) {
+                $query->withTrashed();
+            },
+            'user' => function ($query) {
+                $query->withTrashed();
+            },
+            'product'
+        ])->where('id', $id)->firstOrFail();
 
+        // Find next pending request if current transaction is pending
+        $nextPending = null;
+        if ($transaction->status === 'pending') {
+            $nextPending = Transaction::where('transaction_type', '!=', 'qr')
+                ->where('status', 'pending')
+                ->where('id', '!=', $transaction->id)
+                ->orderBy('id', 'desc')
+                ->first();
+        }
+
+        $redirectTo = $request->input('redirect_to', route('admin.redemption', ['status' => 'pending']));
+
+        return view('admin.redemption.show', [
+            'transaction' => $transaction,
+            'nextPending' => $nextPending,
+            'redirectTo' => $redirectTo,
+            'activeSection' => 'redemption',
+            'title' => 'Request Details #' . $transaction->id
+        ]);
+    }
 
     public function approve(Request $request, $id)
-
     {
-
         DB::beginTransaction();
-
         try {
-
             $transaction = Transaction::where('id', $id)->firstOrFail();
 
-
-
             if (in_array($transaction->status, ['approved', 'completed'])) {
-
-                return redirect()->route('admin.redemption')->with('error', 'This redemption request has already been processed.');
-
+                $redirectTo = $request->input('redirect_to', route('admin.redemption', ['status' => 'pending']));
+                return redirect($redirectTo)->with('error', 'This redemption request has already been processed.');
             }
 
-
-
             if (in_array($transaction->transaction_type, ['upi', 'account'])) {
-
                 $request->validate([
-
                     'transaction_id' => 'required|string|max:255',
-
                 ]);
-
             }
 
             $transaction->transaction_id = $request->transaction_id;
 
-            if (in_array($transaction->transaction_type, ['cash','gift'])) {
-
+            if (in_array($transaction->transaction_type, ['cash', 'gift'])) {
                 $prefix = "TX-CH";
-
                 $uniqueId = strtoupper(uniqid());
-
                 $transaction->transaction_id = $prefix . $uniqueId;
-
             }
 
             $transaction->status = 'approved';
-
             $transaction->approved_at = now();
+            $transaction->remark = $request->filled('remark') ? $request->remark : $transaction->remark;
 
-            $transaction->remark = $request->has('remark') ? $request->remark : $transaction->remark;
-
-            $user = User::findOrFail($transaction->user_id); // Retrieve the user associated with the transaction
-
-            // $user->balance -= $transaction->points; // Deduct the points
-
+            $user = User::findOrFail($transaction->user_id);
             $transaction->save();
 
             if ($user) {
-
                 if ($user->balance < 0) {
-
                     throw new \Exception('Insufficient balance to approve this redemption request.');
-
                 }
-
                 $user->save();
-
             }
-
-
 
             DB::commit();
 
+            $redirectTo = $request->input('redirect_to');
+            if (!$redirectTo) {
+                $redirectTo = route('admin.redemption', ['status' => 'pending']);
+            }
 
-
-            return redirect()->route('admin.redemption')->with('success', 'Redeem request approved successfully.');
-
+            return redirect($redirectTo)->with('success', 'Redeem request approved successfully.');
         } catch (\Exception $e) {
-
             DB::rollBack();
-
-            return redirect()
-
-                ->route('admin.redemption')
-
-                ->with('error', 'An error occurred: ' . $e->getMessage());
-
+            return redirect()->back()->withInput()->with('error', 'An error occurred: ' . $e->getMessage());
         }
-
     }
 
-
-
-    public function reject($id)
-
+    public function reject(Request $request, $id)
     {
-
         DB::beginTransaction();
-
         try {
-
             $transaction = Transaction::where('id', $id)->firstOrFail();
 
-
             if (in_array($transaction->status, ['rejected', 'completed'])) {
-
-                return redirect()->route('admin.redemption')->with('error', 'This redemption request has already been processed.');
-
+                $redirectTo = $request->input('redirect_to', route('admin.redemption', ['status' => 'pending']));
+                return redirect($redirectTo)->with('error', 'This redemption request has already been processed.');
             }
 
             $transaction->status = 'rejected';
-
             $transaction->approved_at = null;
-
+            if ($request->filled('remark')) {
+                $transaction->remark = $request->remark;
+            }
             $transaction->save();
 
-            if($transaction->transaction_type == 'product') {
-
-            }elseif($transaction->transaction_type == 'gift'){
+            if ($transaction->transaction_type == 'product') {
+                // No refund points for product
+            } elseif ($transaction->transaction_type == 'gift') {
                 $user = User::findOrFail($transaction->user_id);
                 $user->gift_balance += $transaction->points;
-    
                 $user->save();
-
-            }else{
+            } else {
                 $user = User::findOrFail($transaction->user_id);
-    
                 $user->balance += $transaction->points;
-    
                 $user->save();
             }
 
-
-
-
-            // Transaction::create([
-
-            //     'user_id' => $transaction->user_id,
-
-            //     'points' => $transaction->points,
-
-            //     'type' => 'credit',
-
-            //     'gift_id' => $transaction->gift_id,
-
-            //     'product_id' => $transaction->product_id,
-
-            //     'transaction_type' => $transaction->transaction_type, 
-
-            //     'remark' => 'Points refunded due to redemption rejection',
-
-            //     'transaction_id' => 'TX-' . strtoupper($transaction->user_id) . '-' . strtoupper(uniqid()),
-
-            //     'redemption_id' => $transaction->redemption_id,
-
-            //     'status' => 'completed'
-
-            // ]);
-
-
-
             DB::commit();
 
+            $redirectTo = $request->input('redirect_to');
+            if (!$redirectTo) {
+                $redirectTo = route('admin.redemption', ['status' => 'pending']);
+            }
 
-
-            return redirect()->route('admin.redemption')->with('success', 'Redeem request rejected successfully and points refunded.');
-
+            return redirect($redirectTo)->with('success', 'Redeem request rejected successfully and points refunded.');
         } catch (\Exception $e) {
-
             DB::rollBack();
-
-            return redirect()
-
-                ->route('admin.redemption')
-
-                ->with('error', 'An error occurred: ' . $e->getMessage());
-
+            return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
+    }
 
+    public function delete(Request $request, $id)
+    {
+        try {
+            $transaction = Transaction::findOrFail($id);
+            $transaction->delete();
+
+            $redirectTo = $request->input('redirect_to');
+            if (!$redirectTo) {
+                $redirectTo = route('admin.redemption', ['status' => 'pending']);
+            }
+
+            return redirect($redirectTo)->with('success', 'Redemption request deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete request: ' . $e->getMessage());
+        }
     }
 
 }

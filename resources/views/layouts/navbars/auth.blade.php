@@ -82,6 +82,12 @@
                 <div class="collapse {{ ($activeSection ?? 'false') == 'redeem' || ($activeSection ?? 'false') == 'redemption' ? 'show' : '' }}"
                     id="redeemManagement">
                     <ul class="nav">
+                        <li class="nav-item ml-3 {{ request()->is('admin/redemption/all') || (request()->is('admin/redemption') && !request()->is('admin/redemption/*')) ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('admin.redemption', ['status' => 'all']) }}">
+                                <i class="fas fa-list"></i>
+                                <span class="sidebar-normal">{{ __('All Requests') }}</span>
+                            </a>
+                        </li>
                         <li class="nav-item ml-3 {{ request()->is('admin/redemption/pending') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('admin.redemption', ['status' => 'pending']) }}">
                                 <i class="fas fa-clock"></i>
@@ -94,12 +100,6 @@
                                 <span class="sidebar-normal">{{ __('Approved Requests') }}</span>
                             </a>
                         </li>
-                        {{-- <li class="nav-item ml-3 {{ request()->is('admin/redemption/completed') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('admin.redemption', ['status' => 'completed']) }}">
-                                <i class="fas fa-check-double"></i>
-                                <span class="sidebar-normal">{{ __('Completed Requests') }}</span>
-                            </a>
-                        </li> --}}
                         <li class="nav-item ml-3 {{ request()->is('admin/redemption/rejected') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ route('admin.redemption', ['status' => 'rejected']) }}">
                                 <i class="fas fa-times"></i>
