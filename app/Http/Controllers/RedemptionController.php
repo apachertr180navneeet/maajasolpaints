@@ -74,7 +74,7 @@ class RedemptionController extends Controller
             ->sum('points');
 
 
-        if ($pendingPoints < $user->balance) {
+        if ($pendingPoints > 0 && $pendingPoints >= $user->balance) {
             return response()->json([
                 'status' => 0,
                 'message' => 'You already have pending requests that exceed or match your balance. Please wait for approval.',

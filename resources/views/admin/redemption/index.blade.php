@@ -64,25 +64,26 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered table-hover align-items-center table-flush"
-                                id='datatable'>
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">User</th>
-                                        <th scope="col">Type</th>
-                                        <th scope="col">Details</th>
-                                        <th scope="col">Points</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Time</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($redeemRequests as $request)
+                        @if ($redeemRequests->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover align-items-center table-flush"
+                                    id='datatable'>
+                                    <thead class="thead-light">
                                         <tr>
-                                            <td>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Details</th>
+                                            <th scope="col">Points</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Time</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($redeemRequests as $request)
+                                            <tr>
+                                                <td>
                                                 <a href="{{ route('admin.redemption.show', ['id' => $request->id, 'redirect_to' => request()->fullUrl()]) }}" class="font-weight-bold text-primary">
                                                     #{{ $request->id }}
                                                 </a>
@@ -234,26 +235,23 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="8" class="text-center py-5">
-                                                <div class="empty-state">
-                                                    <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
-                                                    <h4 class="text-muted font-weight-bold">No {{ ucfirst($status ?? 'Redemption') }} Requests Found</h4>
-                                                    <p class="text-muted mb-0">
-                                                        @if(($status ?? '') == 'pending')
-                                                            Great job! There are no pending requests waiting for approval.
-                                                        @else
-                                                            There are currently no {{ $status ?? '' }} redemption requests to display.
-                                                        @endif
-                                                    </p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="empty-state text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                                <h4 class="text-muted font-weight-bold">No {{ ucfirst($status ?? 'Redemption') }} Requests Found</h4>
+                                <p class="text-muted mb-0">
+                                    @if(($status ?? '') == 'pending')
+                                        Great job! There are no pending requests waiting for approval.
+                                    @else
+                                        There are currently no {{ $status ?? '' }} redemption requests to display.
+                                    @endif
+                                </p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

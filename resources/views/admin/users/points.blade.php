@@ -76,8 +76,6 @@
 
                                     <td>{{ optional($transaction->product)->expiry_date ? $transaction->product->expiry_date->format('d/m/Y') : 'N/A' }}</td>
 
-                                    </td>
-
                                     <!-- Remaining Points in Red -->
                                     <td class="text-danger fw-bold" style="font-weight: bold;color: red !important;">
                                         {{ number_format(abs(optional($transaction->product)->points - $transaction->points_earned ?? 0)) }} PTS
