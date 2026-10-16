@@ -62,6 +62,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
             'balance' => 'decimal:2',
+            'gift_balance' => 'decimal:2',
             'dob' => 'date',
             'password' => 'hashed',
         ];

@@ -122,6 +122,15 @@ class AppController extends Controller
         ->where('transaction_type', 'gift')
         ->where('status', '!=','rejected')
         ->sum('points');
+        $calculatedGiftBalance = (float)($totalGiftCreditPoints - $totalGiftCreditPointsdebit);
+        $userGiftBalance = (float)($user->gift_balance ?? 0);
+        $effectiveGiftBalance = max($userGiftBalance, $calculatedGiftBalance);
+
+        if ($user->gift_balance != $effectiveGiftBalance) {
+            $user->gift_balance = $effectiveGiftBalance;
+            $user->save();
+        }
+
         return response()->json([
             'message' => 'Dashboard fetched successfully.',
             'status' => 1,
@@ -130,8 +139,8 @@ class AppController extends Controller
                 'user' => $user,
                 'last_transaction' => $latestTransactionDetails,
                 'lifetime_balance' => $totalCreditPoints,
-                'gift_balance' => $totalGiftCreditPoints - $totalGiftCreditPointsdebit,
-                'gift_lifetime_balance' => $giftlifetimeblance + ($totalGiftCreditPoints - $totalGiftCreditPointsdebit) ,
+                'gift_balance' => $effectiveGiftBalance,
+                'gift_lifetime_balance' => $giftlifetimeblance + $effectiveGiftBalance,
                 'settings' => $settings
             ]
         ], 200);

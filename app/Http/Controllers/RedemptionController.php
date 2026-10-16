@@ -67,18 +67,43 @@ class RedemptionController extends Controller
         }
         $user = Auth::user();
 
-        // Check for existing pending requests
+        // Check for existing pending requests based on redemption type
+        $redemptionType = $request->input('redemption_type');
+        if ($redemptionType === 'gift') {
+            $pendingGiftPoints = Transaction::where('user_id', $user->id)
+                ->where('transaction_type', 'gift')
+                ->where('status', 'pending')
+                ->sum('points');
 
-        $pendingPoints = Transaction::where('user_id', $user->id)
-            ->where('status', 'pending')
-            ->sum('points');
+            $totalGiftCreditPoints = Transaction::where('user_id', $user->id)
+                ->where('type', 'credit')
+                ->where('transaction_type', 'gift')
+                ->sum('points');
+            $totalGiftDebitPoints = Transaction::where('user_id', $user->id)
+                ->where('type', 'debit')
+                ->where('status', '!=', 'rejected')
+                ->where('transaction_type', 'gift')
+                ->sum('points');
+            $effectiveGiftBal = max((float)$user->gift_balance, (float)($totalGiftCreditPoints - $totalGiftDebitPoints));
 
+            if ($pendingGiftPoints > 0 && $pendingGiftPoints >= $effectiveGiftBal) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'You already have pending requests that exceed or match your gift balance. Please wait for approval.',
+                ], 400);
+            }
+        } elseif (in_array($redemptionType, ['cash', 'upi', 'account'])) {
+            $pendingCashPoints = Transaction::where('user_id', $user->id)
+                ->whereIn('transaction_type', ['cash', 'upi', 'account'])
+                ->where('status', 'pending')
+                ->sum('points');
 
-        if ($pendingPoints > 0 && $pendingPoints >= $user->balance) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'You already have pending requests that exceed or match your balance. Please wait for approval.',
-            ], 400);
+            if ($pendingCashPoints > 0 && $pendingCashPoints >= $user->balance) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'You already have pending requests that exceed or match your balance. Please wait for approval.',
+                ], 400);
+            }
         }
 
         // if ($request->input('redemption_type') === 'gift') {
@@ -192,10 +217,19 @@ class RedemptionController extends Controller
 
                 $points = $gift->points;
 
-                if ($user->gift_balance < $gift->points) {
+                $totalGiftCreditPoints = Transaction::where('user_id', $user->id)
+                    ->where('type', 'credit')
+                    ->where('transaction_type', 'gift')
+                    ->sum('points');
+                $totalGiftDebitPoints = Transaction::where('user_id', $user->id)
+                    ->where('type', 'debit')
+                    ->where('status', '!=', 'rejected')
+                    ->where('transaction_type', 'gift')
+                    ->sum('points');
+                $effectiveGiftBal = max((float)$user->gift_balance, (float)($totalGiftCreditPoints - $totalGiftDebitPoints));
 
+                if ($effectiveGiftBal < $gift->points) {
                     return response()->json(['status' => 0, 'message' => 'Insufficient balance.'], 400);
-
                 }
 
                 $transactionId = 'TX-' . strtoupper($user->id) . '-' . strtoupper(uniqid());
@@ -224,9 +258,7 @@ class RedemptionController extends Controller
 
                 ]);
 
-
-
-                $user->gift_balance -= $points;
+                $user->gift_balance = max(0, $effectiveGiftBal - $points);
 
             } else if ($request->input('redemption_type') === 'product') {
 
